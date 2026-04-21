@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Persist } from './types';
+import { SmartDateInput } from './SmartDateInput';
 
 type Props = { onDone: (p: Persist) => void };
 
@@ -40,15 +41,14 @@ export function Onboarding({ onDone }: Props) {
   const [perDay, setPerDay] = useState(20);
   const [agoMs, setAgoMs] = useState(0);
   const [customMode, setCustomMode] = useState(false);
-  const [customDays, setCustomDays] = useState(0);
-  const [customHours, setCustomHours] = useState(0);
+  const [customDate, setCustomDate] = useState<Date | null>(() => new Date());
   const [price, setPrice] = useState(250);
   const [reasons, setReasons] = useState<string[]>([]);
   const [customReason, setCustomReason] = useState('');
   const [letter, setLetter] = useState('');
 
   const effectiveAgoMs = customMode
-    ? (customDays * 24 + customHours) * 3600_000
+    ? (customDate ? Math.max(0, Date.now() - customDate.getTime()) : 0)
     : agoMs;
 
   const toggleReason = (r: string) => {
@@ -128,27 +128,16 @@ export function Onboarding({ onDone }: Props) {
               </button>
             </div>
             {customMode && (
-              <div className="custom-ago">
-                <div className="ca-inp">
-                  <input
-                    type="number"
-                    min={0}
-                    max={365}
-                    value={customDays}
-                    onChange={(e) => setCustomDays(Math.max(0, parseInt(e.target.value || '0', 10)))}
-                  />
-                  <span>дней</span>
+              <div className="custom-ago-date">
+                <div className="tiny" style={{ marginBottom: 6 }}>
+                  Печатай цифры подряд — курсор сам перескочит между ячейками.
                 </div>
-                <div className="ca-inp">
-                  <input
-                    type="number"
-                    min={0}
-                    max={23}
-                    value={customHours}
-                    onChange={(e) => setCustomHours(Math.max(0, Math.min(23, parseInt(e.target.value || '0', 10))))}
-                  />
-                  <span>часов назад</span>
-                </div>
+                <SmartDateInput
+                  value={customDate}
+                  onChange={setCustomDate}
+                  max={new Date()}
+                  min={new Date(Date.now() - 365 * 24 * 3600_000)}
+                />
               </div>
             )}
             <div className="ago-preview">
