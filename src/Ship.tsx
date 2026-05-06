@@ -1,6 +1,6 @@
 import type { Status } from './types';
-
-type SectionView = { id: string; name: string; cost: number; filled: number };
+import type { SectionView } from './sections';
+import { visualProgress } from './sections';
 
 type Props = {
   sections: SectionView[];
@@ -8,22 +8,23 @@ type Props = {
   totalBuilt: number;
 };
 
-function op(s: SectionView, min = 0) {
-  const v = s.filled / s.cost;
+function op(p: { filled: number; cost: number }, min = 0) {
+  if (p.cost <= 0) return min;
+  const v = p.filled / p.cost;
   return Math.max(min, Math.min(1, v));
 }
 
 export function Ship({ sections, status, totalBuilt }: Props) {
-  const get = (id: string) => sections.find((s) => s.id === id)!;
-  const keel = get('keel');
-  const hull = get('hull');
-  const deck = get('deck');
-  const cabin = get('cabin');
-  const mFore = get('mast-fore');
-  const mMain = get('mast-main');
-  const mMizzen = get('mast-mizzen');
-  const sails = get('sails');
-  const flag = get('flag');
+  const v = visualProgress(sections);
+  const keel = v.keel;
+  const hull = v.hull;
+  const deck = v.deck;
+  const cabin = v.cabin;
+  const mFore = v['mast-fore'];
+  const mMain = v['mast-main'];
+  const mMizzen = v['mast-mizzen'];
+  const sails = v.sails;
+  const flag = v.flag;
 
   const shipClass =
     status === 'sailed' ? 'ship-group sailing' :

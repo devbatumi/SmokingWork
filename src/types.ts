@@ -23,8 +23,20 @@ export type Persist = {
   letterToSelf: string;
 };
 
+export type VisualPart =
+  | 'keel'
+  | 'hull'
+  | 'deck'
+  | 'cabin'
+  | 'mast-fore'
+  | 'mast-main'
+  | 'mast-mizzen'
+  | 'sails'
+  | 'flag';
+
 export type Section = {
   id: string;
   name: string;
   cost: number;
+  visualId: VisualPart;
 };
