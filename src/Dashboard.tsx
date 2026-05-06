@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import type { JournalEntry, Persist } from './types';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { JournalEntry, Persist, VisualPart } from './types';
 import { buildProgress, SECTIONS, TOTAL_BRICKS } from './sections';
 import { Ship } from './Ship';
 import {
@@ -96,6 +96,60 @@ export function Dashboard({
 
   const sections = useMemo(() => buildProgress(built), [built]);
 
+  // Тосты + glow при закрытии подсекции.
+  // Сравниваем completed-флаги с предыдущим тиком: если в этом проходе
+  // флаг сменился false → true, секция только что закрылась.
+  type Toast = { id: number; sectionId: string; name: string; visualId: VisualPart };
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [glowing, setGlowing] = useState<VisualPart | null>(null);
+  const prevDoneRef = useRef<Set<string> | null>(null);
+  const toastIdRef = useRef(0);
+  const glowTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const currentDone = new Set(
+      sections.filter((s) => s.filled >= s.cost).map((s) => s.id),
+    );
+    const prev = prevDoneRef.current;
+    if (prev) {
+      const justClosed = sections.filter(
+        (s) => s.filled >= s.cost && !prev.has(s.id),
+      );
+      if (justClosed.length > 0) {
+        // На редкий случай нескольких закрытий за один тик показываем все.
+        const next = justClosed.map((s) => ({
+          id: ++toastIdRef.current,
+          sectionId: s.id,
+          name: s.name,
+          visualId: s.visualId,
+        }));
+        setToasts((t) => [...t, ...next]);
+        // Снимаем тост через 4с (анимация уходит на 3.6с).
+        next.forEach((toast) => {
+          window.setTimeout(() => {
+            setToasts((cur) => cur.filter((x) => x.id !== toast.id));
+          }, 4200);
+        });
+        // Glow по последней закрытой части (если их несколько за тик).
+        const last = justClosed[justClosed.length - 1];
+        setGlowing(last.visualId);
+        if (glowTimeoutRef.current) window.clearTimeout(glowTimeoutRef.current);
+        glowTimeoutRef.current = window.setTimeout(() => {
+          setGlowing(null);
+          glowTimeoutRef.current = null;
+        }, 1700);
+      }
+    }
+    prevDoneRef.current = currentDone;
+  }, [sections]);
+
+  useEffect(
+    () => () => {
+      if (glowTimeoutRef.current) window.clearTimeout(glowTimeoutRef.current);
+    },
+    [],
+  );
+
   const sinceStartMs = now - state.startedAt;
   const avoidedFloat = Math.min(
     computeAvoidedFloat(state.lastCigaretteAt, state.perDay, now),
@@ -115,6 +169,18 @@ export function Dashboard({
 
   return (
     <div className="container">
+      {toasts.length > 0 && (
+        <div className="toast-stack" role="status" aria-live="polite">
+          {toasts.map((t) => (
+            <div key={t.id} className="toast">
+              <span className="t-title">✓ Секция готова</span>
+              <span className="t-name">{t.name}</span>
+              <span className="t-sub">часть корабля собрана</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="affirm-bar">
         <span className="affirm-label">💭</span>
         <span className="affirm-text">{affirm}</span>
@@ -131,7 +197,7 @@ export function Dashboard({
           </div>
 
           <div className="sea">
-            <Ship sections={sections} status={state.status} totalBuilt={built} />
+            <Ship sections={sections} status={state.status} totalBuilt={built} glowing={glowing} />
           </div>
 
           <div className="progress-wrap">

@@ -1,20 +1,24 @@
-import type { Status } from './types';
+import type { Status, VisualPart } from './types';
 import type { SectionView } from './sections';
-import { visualProgress } from './sections';
+import { visualProgress, type VisualProgress } from './sections';
 
 type Props = {
   sections: SectionView[];
   status: Status;
   totalBuilt: number;
+  glowing?: VisualPart | null;
 };
 
-function op(p: { filled: number; cost: number }, min = 0) {
-  if (p.cost <= 0) return min;
-  const v = p.filled / p.cost;
+// Степовая opacity: completedSubs/subs + 0.4 * fraction внутри текущей
+// подсекции. Так каждое закрытие даёт заметный «щёлк» (60% шага),
+// а внутри подсекции часть проявляется плавно (40% шага).
+function op(p: VisualProgress, min = 0) {
+  if (p.subs <= 0) return min;
+  const v = (p.completedSubs + 0.4 * p.currentFraction) / p.subs;
   return Math.max(min, Math.min(1, v));
 }
 
-export function Ship({ sections, status, totalBuilt }: Props) {
+export function Ship({ sections, status, totalBuilt, glowing }: Props) {
   const v = visualProgress(sections);
   const keel = v.keel;
   const hull = v.hull;
@@ -25,6 +29,7 @@ export function Ship({ sections, status, totalBuilt }: Props) {
   const mMizzen = v['mast-mizzen'];
   const sails = v.sails;
   const flag = v.flag;
+  const glowCls = (id: VisualPart) => (glowing === id ? ' part-glow' : '');
 
   const shipClass =
     status === 'sailed' ? 'ship-group sailing' :
@@ -121,12 +126,12 @@ export function Ship({ sections, status, totalBuilt }: Props) {
       <g className={shipClass} style={{ transformOrigin: '400px 340px', transformBox: 'fill-box' }}>
         <ellipse cx="400" cy="392" rx="200" ry="6" fill="#000" opacity="0.35" />
 
-        <g opacity={op(keel)}>
+        <g className={`ship-part${glowCls('keel')}`} opacity={op(keel)}>
           <path d="M220 360 L580 360 L540 384 L260 384 Z" fill="#3b2410" />
           <line x1="220" y1="360" x2="580" y2="360" stroke="#2a1708" strokeWidth="1.5" />
         </g>
 
-        <g opacity={op(hull)}>
+        <g className={`ship-part${glowCls('hull')}`} opacity={op(hull)}>
           <path d="M180 330 L620 330 L580 360 L220 360 Z" fill="url(#wood)" />
           <path d="M180 330 L620 330 L620 335 L180 335 Z" fill="#2a1708" opacity="0.5" />
           <g stroke="#2a1708" strokeWidth="1" opacity="0.5">
@@ -148,7 +153,7 @@ export function Ship({ sections, status, totalBuilt }: Props) {
           </g>
         </g>
 
-        <g opacity={op(deck)}>
+        <g className={`ship-part${glowCls('deck')}`} opacity={op(deck)}>
           <path d="M200 320 L600 320 L620 330 L180 330 Z" fill="url(#wood2)" />
           <line x1="200" y1="320" x2="600" y2="320" stroke="#2a1708" strokeWidth="1" opacity="0.5" />
           <line x1="280" y1="320" x2="280" y2="330" stroke="#2a1708" strokeWidth="0.6" opacity="0.4" />
@@ -174,7 +179,7 @@ export function Ship({ sections, status, totalBuilt }: Props) {
           </g>
         )}
 
-        <g opacity={op(cabin)}>
+        <g className={`ship-part${glowCls('cabin')}`} opacity={op(cabin)}>
           <rect x="500" y="290" width="80" height="30" fill="#7a4d28" />
           <rect x="500" y="286" width="80" height="6" fill="#5e3a1d" />
           <rect x="510" y="298" width="14" height="14" fill="#ffd97a" opacity="0.9" />
@@ -191,18 +196,18 @@ export function Ship({ sections, status, totalBuilt }: Props) {
           </g>
         )}
 
-        <g opacity={op(mFore)}>
+        <g className={`ship-part${glowCls('mast-fore')}`} opacity={op(mFore)}>
           <rect x="258" y="170" width="6" height="150" fill="#4a2d14" />
           <rect x="220" y="200" width="80" height="4" fill="#4a2d14" />
         </g>
 
-        <g opacity={op(mMain)}>
+        <g className={`ship-part${glowCls('mast-main')}`} opacity={op(mMain)}>
           <rect x="397" y="140" width="7" height="180" fill="#4a2d14" />
           <rect x="350" y="175" width="100" height="4" fill="#4a2d14" />
           <rect x="360" y="215" width="80" height="4" fill="#4a2d14" />
         </g>
 
-        <g opacity={op(mMizzen)}>
+        <g className={`ship-part${glowCls('mast-mizzen')}`} opacity={op(mMizzen)}>
           <rect x="536" y="175" width="6" height="115" fill="#4a2d14" />
           <rect x="506" y="205" width="66" height="4" fill="#4a2d14" />
         </g>
@@ -217,7 +222,7 @@ export function Ship({ sections, status, totalBuilt }: Props) {
           </g>
         )}
 
-        <g opacity={op(sails)}>
+        <g className={`ship-part${glowCls('sails')}`} opacity={op(sails)}>
           <path d="M224 204 Q 261 212 298 204 L 296 240 Q 261 246 226 240 Z" fill="url(#sail)" />
           <path d="M230 172 Q 261 168 292 172 L 290 198 Q 261 202 232 198 Z" fill="url(#sail)" opacity="0.95" />
           <path d="M352 179 Q 400 170 448 179 L 446 215 Q 400 222 354 215 Z" fill="url(#sail)" />
@@ -230,7 +235,7 @@ export function Ship({ sections, status, totalBuilt }: Props) {
           </g>
         </g>
 
-        <g opacity={op(flag)}>
+        <g className={`ship-part${glowCls('flag')}`} opacity={op(flag)}>
           <g stroke="#2a1708" strokeWidth="1" opacity="0.7">
             <line x1="400" y1="140" x2="300" y2="320" />
             <line x1="400" y1="140" x2="500" y2="320" />

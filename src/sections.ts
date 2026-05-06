@@ -67,25 +67,48 @@ export function buildProgress(built: number): SectionView[] {
 }
 
 // Свод по визуальной группе (нужен Ship.tsx для opacity SVG-частей).
-export type VisualProgress = { filled: number; cost: number };
+// Шаги opacity = completedSubs/subs — чтобы каждое закрытие подсекции
+// давало заметный визуальный «щёлк», а не плавное размывание.
+// currentFraction даёт небольшой прогресс внутри текущей подсекции.
+export type VisualProgress = {
+  filled: number;
+  cost: number;
+  subs: number;
+  completedSubs: number;
+  currentFraction: number;
+};
 
 export function visualProgress(
   sections: SectionView[],
 ): Record<VisualPart, VisualProgress> {
   const acc: Record<VisualPart, VisualProgress> = {
-    keel: { filled: 0, cost: 0 },
-    hull: { filled: 0, cost: 0 },
-    deck: { filled: 0, cost: 0 },
-    cabin: { filled: 0, cost: 0 },
-    'mast-fore': { filled: 0, cost: 0 },
-    'mast-main': { filled: 0, cost: 0 },
-    'mast-mizzen': { filled: 0, cost: 0 },
-    sails: { filled: 0, cost: 0 },
-    flag: { filled: 0, cost: 0 },
+    keel: empty(),
+    hull: empty(),
+    deck: empty(),
+    cabin: empty(),
+    'mast-fore': empty(),
+    'mast-main': empty(),
+    'mast-mizzen': empty(),
+    sails: empty(),
+    flag: empty(),
   };
+  // Текущая подсекция — первая незавершённая в каждой группе.
+  const currentSeen: Partial<Record<VisualPart, boolean>> = {};
   for (const s of sections) {
-    acc[s.visualId].filled += s.filled;
-    acc[s.visualId].cost += s.cost;
+    const a = acc[s.visualId];
+    a.filled += s.filled;
+    a.cost += s.cost;
+    a.subs += 1;
+    if (s.filled >= s.cost) {
+      a.completedSubs += 1;
+    } else if (!currentSeen[s.visualId]) {
+      a.currentFraction = s.filled / s.cost;
+      currentSeen[s.visualId] = true;
+    }
   }
   return acc;
+}
+
+function empty(): VisualProgress {
+  return { filled: 0, cost: 0, subs: 0, completedSubs: 0, currentFraction: 0 };
 }

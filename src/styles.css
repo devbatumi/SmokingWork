@@ -983,3 +983,59 @@ label.inline { display: inline-flex; align-items: center; gap: 8px; cursor: poin
 }
 .ship-group.sailing { animation: sail-away 6s ease-in forwards; }
 .ship-group.sinking { animation: sink 4s ease-in forwards; }
+
+.ship-part { transition: opacity 0.6s ease; }
+.ship-part.part-glow {
+  filter: drop-shadow(0 0 6px rgba(255, 198, 90, 0.95))
+          drop-shadow(0 0 14px rgba(255, 198, 90, 0.65));
+  animation: part-glow-pulse 1.6s ease-out;
+}
+@keyframes part-glow-pulse {
+  0%   { filter: drop-shadow(0 0 0 rgba(255, 198, 90, 0)); }
+  20%  { filter: drop-shadow(0 0 12px rgba(255, 198, 90, 1))
+                 drop-shadow(0 0 22px rgba(255, 198, 90, 0.85)); }
+  100% { filter: drop-shadow(0 0 0 rgba(255, 198, 90, 0)); }
+}
+
+.toast-stack {
+  position: fixed;
+  top: 78px;
+  right: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1200;
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  background: linear-gradient(135deg, rgba(255, 198, 90, 0.18), rgba(108, 240, 194, 0.18));
+  border: 1px solid rgba(255, 198, 90, 0.55);
+  color: var(--ink);
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5),
+              0 0 22px rgba(255, 198, 90, 0.35);
+  min-width: 220px;
+  max-width: 320px;
+  animation: toast-in 0.35s ease-out, toast-out 0.4s ease-in 3.6s forwards;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.toast .t-title { font-weight: 600; color: var(--accent); font-size: 13px; }
+.toast .t-name  { font-size: 15px; }
+.toast .t-sub   { font-size: 12px; color: var(--ink-dim); }
+@keyframes toast-in {
+  0%   { opacity: 0; transform: translateX(40px) scale(0.95); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes toast-out {
+  0%   { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(40px); }
+}
+@media (max-width: 640px) {
+  .toast-stack { left: 12px; right: 12px; top: 70px; }
+  .toast { min-width: auto; max-width: none; }
+}
