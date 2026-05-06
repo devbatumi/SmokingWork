@@ -12,10 +12,11 @@ import {
 import { ActionsPanel } from './ActionsPanel';
 import { JournalPanel } from './JournalPanel';
 import { StagesTimeline } from './StagesTimeline';
+import { Pet } from './Pet';
 import { pickAffirmation } from './affirmations';
 import { downloadMd } from './exportMd';
 
-type Tab = 'ship' | 'do' | 'body' | 'journal';
+type Tab = 'ship' | 'do' | 'body' | 'journal' | 'pet';
 
 type Props = {
   state: Persist;
@@ -24,6 +25,7 @@ type Props = {
   onSailed: () => void;
   onBonus: (amount: number, actionId: string) => void;
   onJournalAdd: (e: JournalEntry) => void;
+  onPetAction: (actionId: string) => void;
   onShowGuide: () => void;
 };
 
@@ -81,7 +83,7 @@ function Ring({ pct }: { pct: number }) {
 }
 
 export function Dashboard({
-  state, onRelapse, onReset, onSailed, onBonus, onJournalAdd, onShowGuide,
+  state, onRelapse, onReset, onSailed, onBonus, onJournalAdd, onPetAction, onShowGuide,
 }: Props) {
   const now = useNow(1000);
   const [confirmRelapse, setConfirmRelapse] = useState(false);
@@ -283,6 +285,7 @@ export function Dashboard({
       <div className="tabs">
         <button className={`tab${tab === 'ship' ? ' on' : ''}`} onClick={() => setTab('ship')}>🏗 Секции</button>
         <button className={`tab${tab === 'do' ? ' on' : ''}`} onClick={() => setTab('do')}>🎯 Что сделать</button>
+        <button className={`tab${tab === 'pet' ? ' on' : ''}`} onClick={() => setTab('pet')}>🦜 Игра</button>
         <button className={`tab${tab === 'body' ? ' on' : ''}`} onClick={() => setTab('body')}>🧬 Тело</button>
         <button className={`tab${tab === 'journal' ? ' on' : ''}`} onClick={() => setTab('journal')}>📔 Журнал</button>
       </div>
@@ -323,6 +326,17 @@ export function Dashboard({
               Жми когда реально сделал.
             </p>
             <ActionsPanel state={state} onBonus={onBonus} />
+          </>
+        )}
+
+        {tab === 'pet' && (
+          <>
+            <h3>Корабельный попугай</h3>
+            <p className="tiny" style={{ marginBottom: 12 }}>
+              Когда накатывает тяга — займи руки тут. Корми, мой, играй.
+              Питомец стареет от заботы, а не от времени: чем чаще приходишь — тем взрослее становится.
+            </p>
+            <Pet pet={state.pet} onAction={onPetAction} />
           </>
         )}
 

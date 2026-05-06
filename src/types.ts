@@ -8,6 +8,20 @@ export type JournalEntry = {
   overcame: boolean;
 };
 
+export type PetStat = 'hunger' | 'happiness' | 'energy' | 'cleanliness';
+
+export type PetState = {
+  name: string;
+  hunger: number;
+  happiness: number;
+  energy: number;
+  cleanliness: number;
+  lastTick: number;
+  cooldowns: Record<string, number>;
+  totalActions: number;
+  bornAt: number;
+};
+
 export type Persist = {
   onboarded: boolean;
   startedAt: number;
@@ -21,6 +35,7 @@ export type Persist = {
   journal: JournalEntry[];
   reasons: string[];
   letterToSelf: string;
+  pet: PetState;
 };
 
 export type VisualPart =

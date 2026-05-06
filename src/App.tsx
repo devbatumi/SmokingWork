@@ -5,6 +5,7 @@ import { Welcome } from './Welcome';
 import { SOSModal } from './SOSModal';
 import { clearPersist, usePersist } from './store';
 import { ACTIONS } from './actions';
+import { applyPetAction } from './petLogic';
 import type { JournalEntry, Persist } from './types';
 
 const WELCOME_DISMISS_KEY = 'smokingwork.welcome.dismissed';
@@ -88,6 +89,13 @@ export default function App() {
     });
   };
 
+  const handlePetAction = (actionId: string) => {
+    if (!state) return;
+    const next = applyPetAction(state.pet, actionId, Date.now());
+    if (!next) return;
+    update({ pet: next });
+  };
+
   const handleSosOvercame = () => {
     if (!state) return;
     update({ bonusBricks: state.bonusBricks + 3 });
@@ -139,6 +147,7 @@ export default function App() {
           onSailed={handleSailed}
           onBonus={handleBonus}
           onJournalAdd={handleJournalAdd}
+          onPetAction={handlePetAction}
           onShowGuide={() => setWelcomeOpen(true)}
         />
       )}

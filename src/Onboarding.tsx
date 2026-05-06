@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { Persist } from './types';
 import { SmartDateInput } from './SmartDateInput';
 
+import { defaultPet } from './petLogic';
+
 type Props = { onDone: (p: Persist) => void };
 
 const PRESETS: { label: string; ms: number }[] = [
@@ -80,6 +82,7 @@ export function Onboarding({ onDone }: Props) {
       journal: [],
       reasons,
       letterToSelf: letter.trim(),
+      pet: defaultPet(nowSubmit),
     });
   };
 

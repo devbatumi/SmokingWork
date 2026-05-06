@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Persist } from './types';
 import { TOTAL_BRICKS } from './sections';
+import { defaultPet } from './petLogic';
 
 const KEY = 'smokingwork.v1';
 
@@ -23,6 +24,7 @@ export function loadPersist(): Persist | null {
       journal: p.journal ?? [],
       reasons: p.reasons ?? [],
       letterToSelf: p.letterToSelf ?? '',
+      pet: p.pet ?? defaultPet(Date.now()),
     };
   } catch {
     return null;
